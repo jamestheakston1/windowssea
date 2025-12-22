@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WindowsSea</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .hidden {
+            display: none;
+        }
+        #iframe-container:-webkit-full-screen {
+            width: 100%;
+            height: 100%;
+        }
+        .page-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .fade-out {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+        }
+        .fade-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .win-loader {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .logo-transition {
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+    <header class="py-10 px-6 text-center relative">
+        <h1 class="text-4xl font-light tracking-tight text-slate-800 flex items-center justify-center gap-2 cursor-pointer" onclick="showHome()">
+            <i data-feather="layers" class="text-blue-500"></i>
+            WindowsSea
+        </h1>
+        <p id="page-subtitle" class="text-slate-500 mt-2">Available Platforms</p>
+    </header>
+
+    <main id="home-view" class="page-transition w-full max-w-md mx-auto px-6">
+        <ul class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <li onclick="showDetails('Windows 11')" class="group flex items-center justify-between p-5 hover:bg-blue-50 cursor-pointer transition-all border-b border-slate-100 last:border-0">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <i data-feather="monitor"></i>
+                    </div>
+                    <div>
+                        <span class="block font-medium text-lg">Windows 11</span>
+                        <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Current Version</span>
+                    </div>
+                </div>
+                <i data-feather="chevron-right" class="text-slate-300 group-hover:text-blue-500 transition-colors"></i>
+            </li>
+        </ul>
+    </main>
+
+    <section id="details-view" class="hidden page-transition fade-out w-full max-w-6xl mx-auto px-6 pb-12">
+        <div class="flex items-center justify-between mb-6">
+            <button onclick="showHome()" class="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors">
+                <i data-feather="arrow-left" class="w-4 h-4"></i>
+                Back to List
+            </button>
+            <div class="flex gap-3">
+                <button onclick="updateIframe('/machines/win11?app=cmd')" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 transition-all shadow-sm">
+                    <i data-feather="terminal" class="w-3 h-3"></i>
+                    Open cmd
+                </button>
+                <button onclick="updateIframe('/machines/win11?page=ctrl+alt+del')" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-all shadow-sm">
+                    <i data-feather="command" class="w-3 h-3"></i>
+                    Send ctrl+alt+del
+                </button>
+            </div>
+        </div>
+        
+        <div class="flex flex-col lg:flex-row gap-8 bg-white p-2 border border-slate-200 rounded-3xl shadow-lg overflow-hidden">
+            <div id="iframe-container" class="relative flex-grow aspect-video lg:aspect-auto lg:h-[600px] rounded-2xl overflow-hidden border border-slate-100 bg-transparent">
+                
+                <div id="boot-screen" class="absolute inset-0 z-[60] bg-black flex flex-col items-center opacity-0 hidden transition-opacity duration-700">
+                    <div class="mt-[15%] relative flex flex-col items-center w-full">
+                        <div id="ws-branding" class="logo-transition absolute flex flex-col items-center opacity-0">
+                            <i data-feather="layers" class="w-20 h-20 text-blue-500 mb-4"></i>
+                            <h2 class="text-3xl font-light text-white">WindowsSea</h2>
+                        </div>
+                        <img id="win-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Windows_logo_-_2021.svg/1024px-Windows_logo_-_2021.svg.png" class="logo-transition absolute w-24 h-24 opacity-0" alt="Windows Logo">
+                    </div>
+                    <div class="absolute bottom-20 flex flex-col items-center">
+                        <div class="win-loader"></div>
+                    </div>
+                </div>
+
+                <div id="win-shutdown-screen" class="absolute inset-0 z-50 bg-[#0067c0] flex flex-col items-center justify-center text-white opacity-0 pointer-events-none transition-opacity duration-500">
+                    <div class="win-loader mb-6"></div>
+                    <h2 class="text-2xl font-light">Shutting down</h2>
+                    <button onclick="cancelShutdown()" class="mt-8 px-4 py-1 text-xs border border-white/30 rounded hover:bg-white/10 transition-colors">Cancel</button>
+                </div>
+
+                <div id="inactive-overlay" class="absolute inset-0 z-[55] bg-slate-900/40 backdrop-blur-md flex flex-col items-center justify-center text-white opacity-0 hidden transition-opacity duration-500">
+                    <h3 class="text-2xl font-light mb-6">System inactive</h3>
+                    <button onclick="startSystem()" class="flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all shadow-xl font-medium">
+                        <i data-feather="play" class="w-4 h-4"></i>
+                        Start System
+                    </button>
+                </div>
+
+                <iframe 
+                    id="content-frame"
+                    src="about:blank" 
+                    class="w-full h-full border-0"
+                    title="Platform Preview"
+                    allowfullscreen
+                ></iframe>
+                
+                <div class="absolute bottom-4 right-4 flex gap-2 z-10">
+                    <button 
+                        onclick="shutdown()" 
+                        class="bg-white/90 backdrop-blur shadow-md p-2 rounded-lg border border-slate-200 text-slate-700 hover:text-red-500 hover:bg-white transition-all"
+                        title="Shutdown"
+                    >
+                        <i data-feather="power" class="w-5 h-5"></i>
+                    </button>
+                    <button 
+                        onclick="toggleFullscreen()" 
+                        class="bg-white/90 backdrop-blur shadow-md p-2 rounded-lg border border-slate-200 text-slate-700 hover:text-blue-600 hover:bg-white transition-all"
+                        title="Toggle Fullscreen"
+                    >
+                        <i data-feather="maximize" class="w-5 h-5" id="fs-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:w-80 p-6 flex flex-col justify-center">
+                <h2 id="details-title" class="text-3xl font-semibold text-slate-800 mb-4">Windows 11</h2>
+                <div class="space-y-4 text-slate-600 leading-relaxed">
+                    <p>
+                        Experience the latest evolution of the Windows platform. Windows 11 brings a fresh perspective to your computing experience.
+                    </p>
+                    <div class="pt-4 border-t border-slate-100">
+                        <h3 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-2">Specifications</h3>
+                        <ul class="text-sm space-y-2">
+                            <li class="flex justify-between items-center">
+                                <span>Status:</span> 
+                                <span id="status-badge" class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium">Unknown</span>
+                            </li>
+                            <li class="flex justify-between"><span>Release:</span> <span>Stable</span></li>
+                            <li class="flex justify-between"><span>Kernel:</span> <span>NT</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="mt-auto py-8 text-center text-slate-400 text-sm">
+        &copy; 2025 WindowsSea
+    </footer>
+
+    <script>
+        feather.replace();
+
+        function updateStatus(status) {
+            const badge = document.getElementById('status-badge');
+            badge.innerText = status;
+            badge.className = "px-2 py-0.5 rounded-full font-medium transition-colors";
+            
+            if (status === 'Active') badge.classList.add('bg-green-100', 'text-green-600');
+            else if (status === 'Idle') badge.classList.add('bg-slate-100', 'text-slate-500');
+            else if (status === 'Booting') badge.classList.add('bg-blue-100', 'text-blue-600');
+            else badge.classList.add('bg-slate-100', 'text-slate-500');
+        }
+
+        function showDetails(platform) {
+            const home = document.getElementById('home-view');
+            const details = document.getElementById('details-view');
+            const subtitle = document.getElementById('page-subtitle');
+            const overlay = document.getElementById('inactive-overlay');
+
+            home.classList.add('fade-out');
+            subtitle.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                home.classList.add('hidden');
+                subtitle.classList.add('hidden');
+                details.classList.remove('hidden');
+                
+                requestAnimationFrame(() => {
+                    details.classList.remove('fade-out');
+                    details.classList.add('fade-in');
+                    overlay.classList.remove('hidden');
+                    requestAnimationFrame(() => overlay.style.opacity = "1");
+                });
+                
+                updateStatus('Idle');
+            }, 400);
+
+            document.getElementById('details-title').innerText = platform;
+        }
+
+        function startSystem() {
+            const overlay = document.getElementById('inactive-overlay');
+            const bootScreen = document.getElementById('boot-screen');
+            const wsBranding = document.getElementById('ws-branding');
+            const winLogo = document.getElementById('win-logo');
+            const iframe = document.getElementById('content-frame');
+
+            overlay.style.opacity = "0";
+            setTimeout(() => overlay.classList.add('hidden'), 500);
+
+            updateStatus('Booting');
+            bootScreen.classList.remove('hidden');
+            requestAnimationFrame(() => bootScreen.style.opacity = "1");
+
+            setTimeout(() => {
+                wsBranding.style.opacity = "1";
+                wsBranding.style.transform = "translateY(0)";
+                
+                setTimeout(() => {
+                    wsBranding.style.opacity = "0";
+                    wsBranding.style.transform = "translateY(-10px)";
+                    
+                    setTimeout(() => {
+                        winLogo.style.opacity = "1";
+                        winLogo.style.transform = "translateY(0)";
+                        
+                        setTimeout(() => {
+                            bootScreen.style.opacity = "0";
+                            iframe.src = "/machines/win11";
+                            updateStatus('Active');
+                            setTimeout(() => bootScreen.classList.add('hidden'), 700);
+                        }, 4000);
+                    }, 800);
+                }, 3000);
+            }, 500);
+        }
+
+        function showHome() {
+            const home = document.getElementById('home-view');
+            const details = document.getElementById('details-view');
+            const subtitle = document.getElementById('page-subtitle');
+            const iframe = document.getElementById('content-frame');
+
+            details.classList.remove('fade-in');
+            details.classList.add('fade-out');
+            
+            setTimeout(() => {
+                details.classList.add('hidden');
+                home.classList.remove('hidden');
+                subtitle.classList.remove('hidden');
+                iframe.src = "about:blank";
+                
+                requestAnimationFrame(() => {
+                    home.classList.remove('fade-out');
+                    subtitle.classList.remove('opacity-0');
+                });
+            }, 400);
+        }
+
+        function updateIframe(newSrc) {
+            const iframe = document.getElementById('content-frame');
+            iframe.src = newSrc;
+        }
+
+        function toggleFullscreen() {
+            const container = document.getElementById('iframe-container');
+            const icon = document.getElementById('fs-icon');
+
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) container.requestFullscreen();
+                icon.setAttribute('data-feather', 'minimize');
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                icon.setAttribute('data-feather', 'maximize');
+            }
+            feather.replace();
+        }
+
+        function shutdown() {
+            const screen = document.getElementById('win-shutdown-screen');
+            const overlay = document.getElementById('inactive-overlay');
+            const iframe = document.getElementById('content-frame');
+            
+            screen.classList.remove('pointer-events-none');
+            screen.style.opacity = "1";
+            
+            setTimeout(() => {
+                if (screen.style.opacity === "1") {
+                    cancelShutdown();
+                    iframe.src = "about:blank";
+                    updateStatus('Idle');
+                    overlay.classList.remove('hidden');
+                    requestAnimationFrame(() => overlay.style.opacity = "1");
+                }
+            }, 3000);
+        }
+
+        function cancelShutdown() {
+            const screen = document.getElementById('win-shutdown-screen');
+            screen.style.opacity = "0";
+            screen.classList.add('pointer-events-none');
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('fs-icon');
+            if (!document.fullscreenElement) icon.setAttribute('data-feather', 'maximize');
+            else icon.setAttribute('data-feather', 'minimize');
+            feather.replace();
+        });
+    </script>
+</body>
+</html>
