@@ -155,7 +155,7 @@
 
                 <iframe 
                     id="content-frame"
-                    src="/machines/win11" 
+                    src="about:blank" 
                     class="w-full h-full border-0"
                     title="Platform Preview"
                     allowfullscreen
@@ -232,7 +232,7 @@
             if (!overlay.classList.contains('hidden')) {
                 startSystem(appName);
             } else {
-                updateIframe(`win11.html?app=${appName}`);
+                updateIframe(`/machines/win11.html?app=${appName}`);
             }
         }
 
@@ -325,7 +325,7 @@
                 details.classList.add('hidden');
                 home.classList.remove('hidden');
                 subtitle.classList.remove('hidden');
-                iframe.src = "/machines/win11";
+                iframe.src = "about:blank";
                 
                 requestAnimationFrame(() => {
                     home.classList.remove('fade-out');
