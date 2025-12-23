@@ -155,7 +155,7 @@
 
                 <iframe 
                     id="content-frame"
-                    src="about:blank" 
+                    src="/machines/win11" 
                     class="w-full h-full border-0"
                     title="Platform Preview"
                     allowfullscreen
@@ -303,7 +303,7 @@
                         setTimeout(() => {
                             bootScreen.style.opacity = "0";
                             const query = app ? `?app=${app}` : '';
-                            iframe.src = `win11.html${query}`;
+                            iframe.src = `/machines/win11.html${query}`;
                             updateStatus('Active');
                             setTimeout(() => bootScreen.classList.add('hidden'), 700);
                         }, 4000);
@@ -325,7 +325,7 @@
                 details.classList.add('hidden');
                 home.classList.remove('hidden');
                 subtitle.classList.remove('hidden');
-                iframe.src = "about:blank";
+                iframe.src = "/machines/win11";
                 
                 requestAnimationFrame(() => {
                     home.classList.remove('fade-out');
