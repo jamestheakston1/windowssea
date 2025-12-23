@@ -45,6 +45,17 @@
         .logo-transition {
             transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
         }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 0.5rem;
+            z-index: 70;
+        }
+        .dropdown-content.show {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
@@ -80,15 +91,35 @@
                 <i data-feather="arrow-left" class="w-4 h-4"></i>
                 Back to List
             </button>
-            <div class="flex gap-3">
-                <button onclick="updateIframe('/machines/win11?app=cmd')" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 transition-all shadow-sm">
+            <div class="flex items-center gap-2">
+                <button onclick="launchApp('cmd')" class="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg hover:bg-slate-200 transition-all shadow-sm">
                     <i data-feather="terminal" class="w-3 h-3"></i>
-                    Open cmd
+                    Open Command Prompt
                 </button>
-                <button onclick="updateIframe('/machines/win11?page=ctrl+alt+del')" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-all shadow-sm">
-                    <i data-feather="command" class="w-3 h-3"></i>
-                    Send ctrl+alt+del
-                </button>
+                <div class="relative">
+                    <button onclick="toggleAppLibrary()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 transition-all shadow-sm">
+                        <i data-feather="grid" class="w-3 h-3"></i>
+                        App Library
+                        <i data-feather="chevron-down" class="w-3 h-3"></i>
+                    </button>
+                    <div id="app-dropdown" class="dropdown-content bg-white border border-slate-200 rounded-xl shadow-xl w-52 overflow-hidden">
+                        <button onclick="launchApp('browser')" class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors border-b border-slate-100">
+                            <i data-feather="globe" class="w-4 h-4 text-blue-500"></i> Edge
+                        </button>
+                        <button onclick="launchApp('wikipedia')" class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors border-b border-slate-100">
+                            <i data-feather="book-open" class="w-4 h-4 text-slate-600"></i> Wikipedia
+                        </button>
+                        <button onclick="launchApp('wellbeing')" class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors border-b border-slate-100">
+                            <i data-feather="heart" class="w-4 h-4 text-rose-500"></i> Digital Wellbeing
+                        </button>
+                        <button onclick="launchApp('cmd')" class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors border-b border-slate-100">
+                            <i data-feather="terminal" class="w-4 h-4 text-slate-700"></i> Command Prompt
+                        </button>
+                        <button onclick="launchApp('taskmgr')" class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors">
+                            <i data-feather="activity" class="w-4 h-4 text-emerald-500"></i> Task Manager
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -177,6 +208,34 @@
     <script>
         feather.replace();
 
+        function toggleAppLibrary() {
+            document.getElementById('app-dropdown').classList.toggle('show');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.relative')) {
+                const dropdowns = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        function launchApp(appName) {
+            const overlay = document.getElementById('inactive-overlay');
+            const dropdown = document.getElementById('app-dropdown');
+            dropdown.classList.remove('show');
+            
+            if (!overlay.classList.contains('hidden')) {
+                startSystem(appName);
+            } else {
+                updateIframe(`win11.html?app=${appName}`);
+            }
+        }
+
         function updateStatus(status) {
             const badge = document.getElementById('status-badge');
             badge.innerText = status;
@@ -215,7 +274,7 @@
             document.getElementById('details-title').innerText = platform;
         }
 
-        function startSystem() {
+        function startSystem(app = '') {
             const overlay = document.getElementById('inactive-overlay');
             const bootScreen = document.getElementById('boot-screen');
             const wsBranding = document.getElementById('ws-branding');
@@ -243,7 +302,8 @@
                         
                         setTimeout(() => {
                             bootScreen.style.opacity = "0";
-                            iframe.src = "/machines/win11";
+                            const query = app ? `?app=${app}` : '';
+                            iframe.src = `win11.html${query}`;
                             updateStatus('Active');
                             setTimeout(() => bootScreen.classList.add('hidden'), 700);
                         }, 4000);
